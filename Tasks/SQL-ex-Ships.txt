@@ -1,0 +1,20 @@
+--Ships DB
+31) 1
+Select class, country
+from classes
+where bore >= 16
+
+33) 1
+Select ship
+from outcomes
+where result = 'sunk'
+and battle = 'North Atlantic'
+ 
+38) 1
+Select distinct country
+from classes
+where type = 'bb'
+intersect
+Select distinct country
+from classes
+where type = 'bc'

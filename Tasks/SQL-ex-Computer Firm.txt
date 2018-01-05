@@ -40,15 +40,65 @@ SELECT model, speed, hd
 FROM pc
 WHERE price < 500
 
+--
+from p in PCs
+where p.Price < 500
+select new {p.Model, p.Speed, p.Hd}
+
+--
+PCs
+.Where(p => (p.Price < 500))
+.Select(p => new
+{
+	Model = p.Model,
+	Speed = p.Speed,
+	Hd = p.Hd
+})
+
 2) 
 SELECT DISTINCT Maker
 FROM Product
 WHERE type = 'Printer'
 
+--
+(from p in Products
+where p.Type == "Printer"
+select new {p.Maker}).Distinct()
+
+--
+Products
+.Where(p => p.Type == "Printer")
+.Select(p => new
+{
+	Maker = p.Maker
+}).Distinct()
+
+
 3)
 SELECT model, ram, screen
 FROM laptop
 WHERE price > 1000
+
+--
+from l in Laptops
+where l.Price > 1000
+select new 
+{
+	Model = l.Model,
+	Ram = l.Ram,
+	Screen = l.Screen
+}
+
+--
+Laptops
+.Where(l => l.Price > 1000)
+.Select(l => new
+{
+	Model = l.Model,
+	Ram = l.Ram,
+	Screen = l.Screen
+})
+
 
 4)
 SELECT *
@@ -220,10 +270,6 @@ from (product inner join printer
 on product.model = printer.model)
 
 
---Ships DB
-31)
-Select class, country
-from classes
-where bore >= 16
+
 
 
