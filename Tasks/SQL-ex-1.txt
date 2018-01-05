@@ -34,7 +34,7 @@ price MONEY,
 FOREIGN KEY (model) REFERENCES Product(model))
 
 
-
+--Computer firm DB
 1)
 SELECT model, speed, hd 
 FROM pc
@@ -167,4 +167,63 @@ where speed < all(select speed from pc)
 select maker, avg(screen)
 from product inner join laptop on (product.model = laptop.model)
 group by maker
+
+
+21)
+SELECT maker, MAX(price) as 'Maximum price'
+FROM Product, PC
+Where Product.model = PC.model
+GROUP BY maker
+
+22)
+SELECT speed, AVG(price)
+FROM PC
+WHERE speed > 600
+GROUP BY speed
+
+23)
+SELECT Distinct maker
+From (Product inner join PC on Product.model = PC.model)
+Where PC.speed >=750
+intersect 
+(SELECT Distinct maker
+From (Product inner join laptop on Product.model = laptop.model)
+Where laptop.speed >=750)
+
+
+!!!
+24)
+Select maker, price
+from product inner join printer on product.model = printer.model
+where price = (select Min(price)
+from Printer
+where color = 'y'
+)
+
+!!!
+25)
+select maker
+from (product inner join PC 
+on product.model = PC.model)
+
+where speed =
+(select max(speed)
+from PC
+where ram =
+(select min(ram)
+from PC
+))
+
+intersect
+select maker
+from (product inner join printer 
+on product.model = printer.model)
+
+
+--Ships DB
+31)
+Select class, country
+from classes
+where bore >= 16
+
 
