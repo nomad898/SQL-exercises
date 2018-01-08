@@ -18,3 +18,58 @@ intersect
 Select distinct country
 from classes
 where type = 'bc'
+
+40)
+Select classes.class, name, country
+From Classes inner join ships on classes.class = ships.class
+where numGuns >=10
+
+
+42)
+Select ship, battle
+From outcomes
+where result = 'sunk'
+
+
+44)
+Select name
+from ships
+where name like 'R%'
+union 
+select ship
+from outcomes
+where ship like 'R%'
+
+
+45)
+Select name
+from ships
+where name like '% % %'
+union
+select ship
+from outcomes
+where ship like '% % %'
+
+
+49)
+select name
+from ships inner join classes
+on ships.class = classes.class
+where bore = 16
+union
+select ship
+from (ships inner join outcomes 
+on outcomes.ship = ships.name)
+inner join classes 
+on ships.class= classes.class 
+where bore = 16
+
+
+50)
+Select distinct battle
+from (ships inner join outcomes
+on ships.name = outcomes.ship)
+where ships.class = 'Kongo'
+
+
+
