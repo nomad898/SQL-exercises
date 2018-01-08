@@ -293,15 +293,58 @@ group by hd
 having count(hd) >1
 
 
+16)
+select p1.model, p2.model, p1.speed, p1.ram
+from PC as p1, PC as p2
+where p1.model <> p2.model 
+and p1.speed = p2.speed
+and p1.ram = p2.ram
+and p1.model > p2.model
+
+
+
 17) !!!
 select type, product.model, speed
 from product inner join laptop on (product.model = laptop.model)
 where speed < all(select speed from pc)
 
+ 
+18) !!!
+
+SELECT c.maker, a.priceA price
+FROM (SELECT MIN(price) priceA 
+ FROM Printer 
+ WHERE Color ='y'
+ ) a INNER JOIN 
+ Printer b ON a.priceA = b.price INNER JOIN 
+ Product c ON b.model = c.model
+ where b.color = 'y'
+
+
+
+Select maker, price
+from product inner join printer on product.model = printer.model
+where price = (select Min(price)
+from Printer
+where color = 'y'
+)
+
+
+
 19) 
 select maker, avg(screen)
 from product inner join laptop on (product.model = laptop.model)
 group by maker
+
+
+
+20)
+select maker, count(type)
+from product 
+where type='PC'
+group by maker
+having count(type) > 2
+
 
 
 21)
@@ -326,14 +369,29 @@ From (Product inner join laptop on Product.model = laptop.model)
 Where laptop.speed >=750)
 
 
-!!!
 24)
-Select maker, price
-from product inner join printer on product.model = printer.model
-where price = (select Min(price)
-from Printer
-where color = 'y'
-)
+select model
+from 
+(select model, price
+from pc
+union all
+select model, price
+from laptop
+union all
+select model, price
+from printer) x
+where price = (select  max(price)
+from 
+(select price
+from pc
+union all
+select price
+from laptop
+union all
+select price
+from printer) x)
+group by model
+
 
 !!!
 25)
