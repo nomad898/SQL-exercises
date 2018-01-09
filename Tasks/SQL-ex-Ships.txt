@@ -4,6 +4,20 @@ Select class, country
 from classes
 where bore >= 16
 
+
+32)
+SELECT classes.country, CAST(AVG(bore*bore*bore/2) AS DEC(12,2)) as 'weight'
+FROM classes inner join ships
+on classes.class = ships.class
+group by classes.country
+union
+Select country, CAST(AVG(bore*bore*bore/2) AS DEC(12,2)) as 'weight'
+from classes
+group by country
+
+
+
+
 33) 1
 Select ship
 from outcomes
@@ -82,13 +96,38 @@ from outcomes
 where ship like '% % %'
 
 
-46)
-SELECT outcomes.ship, Classes.displacement, Classes.numGuns 
-FROM outcomes full JOIN
- ships ON outcomes.ship = ships.name
-inner join classes 
+46) !!!
+SELECT distinct outcomes.ship, Classes.displacement, Classes.numGuns 
+FROM outcomes 
+left join classes
+on classes.class = outcomes.ship
+WHERE Outcomes.battle = 'Guadalcanal'
+and Classes.displacement is not null or Classes.numGuns  is not null
+and Outcomes.battle = 'Guadalcanal'
+union 
+SELECT distinct outcomes.ship, Classes.displacement, Classes.numGuns 
+FROM outcomes left join ships
+on outcomes.ship = ships.name
+inner join classes
 on classes.class = ships.class
 WHERE Outcomes.battle = 'Guadalcanal'
+
+48)
+Select ships.class
+from 
+Outcomes inner join ships
+on ships.name= Outcomes.ship
+where Outcomes.result = 'sunk'
+union 
+Select classes.class
+from 
+Outcomes inner join classes
+on classes.class= Outcomes.ship
+where Outcomes.result = 'sunk'
+
+
+
+
 
 49)
 select name
@@ -97,11 +136,11 @@ on ships.class = classes.class
 where bore = 16
 union
 select ship
-from (ships inner join outcomes 
-on outcomes.ship = ships.name)
+from outcomes 
 inner join classes 
-on ships.class= classes.class 
+on outcomes.ship= classes.class 
 where bore = 16
+
 
 
 50)
