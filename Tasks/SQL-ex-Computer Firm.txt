@@ -279,6 +279,13 @@ select model
 from product
 where maker = 'a')
 
+--
+PCs.Where(model => Products.Where(prod => prod.Maker == "a")
+.Select(prod => prod.Model)
+.Contains(model.Model))
+.Select(pc => (int)pc.Speed)
+.Average()
+
 14) !!!
 Select  maker, type
 from product
@@ -293,8 +300,15 @@ group by hd
 having count(hd) >1
 
 
+--
+from pc in PCs
+group pc by pc.Hd into pcs
+where pcs.Count() > 1
+select pcs.Key
+
+
 16)
-select p1.model, p2.model, p1.speed, p1.ram
+select distinct p1.model, p2.model, p1.speed, p1.ram
 from PC as p1, PC as p2
 where p1.model <> p2.model 
 and p1.speed = p2.speed
@@ -310,32 +324,36 @@ where speed < all(select speed from pc)
 
  
 18) !!!
-
-SELECT c.maker, a.priceA price
-FROM (SELECT MIN(price) priceA 
- FROM Printer 
- WHERE Color ='y'
- ) a INNER JOIN 
- Printer b ON a.priceA = b.price INNER JOIN 
- Product c ON b.model = c.model
- where b.color = 'y'
-
-
-
-Select maker, price
-from product inner join printer on product.model = printer.model
-where price = (select Min(price)
+Select distinct maker, price
+from product inner join printer
+on product.model = printer.model
+where price in (select Min(price)
 from Printer
-where color = 'y'
-)
+where color = 'y')
+and color = 'y'
+
+--
 
 
 
 19) 
 select maker, avg(screen)
-from product inner join laptop on (product.model = laptop.model)
+from product inner join laptop 
+on (product.model = laptop.model)
 group by maker
 
+
+--
+from pr in Products 
+join l in Laptops
+on pr.Model equals l.Model
+group pr by pr.Maker 
+into prs
+select new
+{
+	Maker = prs.Key,
+	ScreenAvg = Laptops.Select(lap =>(int)lap.Screen).Average()
+}
 
 
 20)
@@ -411,6 +429,46 @@ intersect
 select maker
 from (product inner join printer 
 on product.model = printer.model)
+
+26)
+Select avg(price)
+from 
+(select price
+from pc inner join product
+on pc.Model = product.Model
+where product.Maker = 'A'
+union all
+select price
+from laptop inner join product
+on laptop .Model = product.Model
+where product.Maker = 'A') x
+
+
+27)
+Select distinct maker, avg(hd)
+from product inner join pc
+on product.model = pc.model
+where maker in 
+(select distinct maker
+from product 
+where type ='printer')
+group by maker
+
+
+
+28)
+select count(distinct maker)
+from product
+-- Нужно дописать where условие, но какое?
+group by maker
+having count(distinct model) = 1
+
+
+29)
+
+
+
+
 
 
 
