@@ -36,11 +36,6 @@ and ships.launched is not null
 and classes.type = 'bb'
 
 
-35)
-Select distinct model, type
-from product
-where model like '%[0-9]%'
-OR model like '%[A-Z]%'
 
 
 36)
@@ -51,6 +46,24 @@ union
 Select distinct ship
 from outcomes, classes
 where outcomes.ship = classes.class
+
+
+37)
+Select ships.class
+from ships
+group by ships.class
+having count(ships.class) = 1
+union
+Select classes.class
+from classes 
+inner join outcomes on
+classes.class = outcomes.ship
+where outcomes.ship NOT in
+(Select name
+from ships)
+group by classes.class
+having count(Classes.Class) = 1
+
 
 
 

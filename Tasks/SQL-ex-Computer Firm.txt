@@ -1,3 +1,6 @@
+xcopy /Q /Y "$(Targetpath)" "$(SolutionDir)\GameRunner\bin\Debug"
+
+
 CREATE DATABASE [Computer firm]
 GO
 CREATE TABLE Product
@@ -411,7 +414,6 @@ from printer) x)
 group by model
 
 
-!!!
 25)
 select maker
 from (product inner join PC 
@@ -423,12 +425,15 @@ from PC
 where ram =
 (select min(ram)
 from PC
-))
+))  and ram =
+(select min(ram)
+from PC)
 
 intersect
 select maker
-from (product inner join printer 
-on product.model = printer.model)
+from product
+where type = 'printer'
+
 
 26)
 Select avg(price)
@@ -469,6 +474,22 @@ having count(distinct model) = 1
 
 
 
+35)
+Select distinct model, type
+from product
+where model like '%[0-9]%'
+and ISNUMERIC(model) = 1
+OR model like '%[A-Z]%'
+and model NOT LIKE '%[0-9]%'
+
+
+
+47)
+Select Count(*) no, p1.maker, p1.model
+from product p1 join
+ product p2 on p1.model <= p2.model
+group by p1.model, p1.maker
+order by p1.model asc, p1.maker desc
 
 
 
