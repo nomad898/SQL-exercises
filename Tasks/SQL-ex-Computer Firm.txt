@@ -1,6 +1,9 @@
 xcopy /Q /Y "$(Targetpath)" "$(SolutionDir)\GameRunner\bin\Debug"
 
 
+
+
+
 CREATE DATABASE [Computer firm]
 GO
 CREATE TABLE Product

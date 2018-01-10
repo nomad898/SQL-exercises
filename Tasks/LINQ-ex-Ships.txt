@@ -1,0 +1,176 @@
+31)
+from cl in Classes
+where cl.Bore >= 16
+select new 
+{
+	Class = cl.Class,
+	Country = cl.Country
+}
+
+
+32) !!!
+(from cl in Classes
+join ship in Ships
+on cl.Class equals ship.Class
+group cl by cl.Country
+into cls
+select new 
+{
+	Country = cls.Key,
+	Weight = cls.Average(x => x.Bore * x.Bore * x.Bore / 2)
+}).Union
+(
+from cl in Classes
+group cl by cl.Country
+select 
+)
+
+
+
+33)
+from outcome in Outcomes
+where outcome.Result == "sunk"
+&& outcome.Battle == "North Atlantic"
+select outcome.Ship
+
+
+34)
+(from ship in Ships
+join cl in Classes
+on ship.Class equals cl.Class
+where ship.Launched >= 1922
+&& cl.Displacement > 35000
+&& ship.Launched != null
+&& cl.Type == "bb"
+select ship.Name).Distinct()
+
+
+36)
+(from ship in Ships
+where ship.Name == ship.Class
+select ship.Name).Distinct()
+.Union
+(from outcome in Outcomes
+from cl in Classes
+where outcome.Ship == cl.Class
+select outcome.Ship).Distinct()
+
+---
+((from ship in Ships
+where ship.Name == ship.Class
+select ship.Name)
+.Union
+(from outcome in Outcomes
+from cl in Classes
+where outcome.Ship == cl.Class
+select outcome.Ship)).Distinct()
+
+
+
+37)
+(from ship in Ships
+group ship by ship.Class
+into ships
+where ships.Select(x => x.Class).Count() == 1
+select ships.Key)
+.Union(
+from cl in Classes
+join outcome in Outcomes
+on cl.Class equals outcome.Ship
+let squery = from ship in Ships
+			select ship.Name
+where !squery.Contains(outcome.Ship)
+group cl by cl.Class
+into cls
+where cls.Select(x => x.Class).Count() == 1
+select cls.Key)
+
+38)
+((from cl in Classes 
+where cl.Type == "bb"
+select cl.Country)
+.Intersect
+(from cl in Classes
+where cl.Type =="bc"
+select cl.Country))
+.Distinct()
+
+
+
+40)
+from cl in Classes
+join ship in Ships
+on cl.Class equals ship.Class
+where cl.NumGuns >= 10
+select new
+{
+	Classes = cl.Class,
+	Name = ship.Name,
+	Country = cl.Country
+}
+
+
+42)
+from outcome in Outcomes
+where outcome.Result == "sunk"
+select new { Ship = outcome.Ship, Battle = outcome.Battle }
+
+
+44)
+(from ship in Ships
+where ship.Name.StartsWith("R")
+select ship.Name)
+.Union
+(from outcome in Outcomes
+where outcome.Ship.StartsWith("R")
+select outcome.Ship)
+
+
+
+
+
+45)
+(from ship in Ships
+where SqlMethods.Like(ship.Name, "% % %")
+select ship.Name)
+.Union
+(from outcome in Outcomes
+where SqlMethods.Like(outcome.Ship, "% % %")
+select outcome.Ship)
+
+
+
+48)
+(from outcome in Outcomes
+join ship in Ships
+on outcome.Ship equals ship.Name
+where outcome.Result == "sunk"
+select ship.Class)
+.Union
+(from outcome in Outcomes
+join cl in Classes
+on outcome.Ship equals cl.Class
+where outcome.Result == "sunk"
+select cl.Class)
+
+
+49)
+(from ship in Ships
+join cl in Classes
+on ship.Class equals cl.Class
+where cl.Bore == 16
+select ship.Name)
+.Union
+(from outcome in Outcomes
+join cl in Classes
+on outcome.Ship equals cl.Class
+where cl.Bore ==16
+select outcome.Ship)
+
+
+50)
+(from outcome in Outcomes
+join ship in Ships
+on outcome.Ship equals ship.Name
+where ship.Class == "Kongo"
+select outcome.Battle).Distinct()
