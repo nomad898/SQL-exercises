@@ -272,7 +272,8 @@ from laptop
 where price > 1000
 
 --
-Laptops.Where(l => l.Price > 1000).Average(l => l.Speed)
+Laptops.Where(l => l.Price > 1000)
+.Average(l => l.Speed)
 
 13)
 Select avg(speed)
@@ -281,6 +282,22 @@ where model in (
 select model 
 from product
 where maker = 'a')
+
+-- Без приведения к Int выдаёт ошибку
+(from pc in PCs
+let squery = from prod in Products
+			where prod.Maker == "A"
+			select prod.Model
+where squery.Contains(pc.Model)
+select (int)pc.Speed).Average()
+
+--
+(from pc in PCs
+let squery = from prod in Products
+			where prod.Maker == "A"
+			select prod.Model
+where squery.Contains(pc.Model)
+select pc.Speed).Average()
 
 --
 PCs.Where(model => Products.Where(prod => prod.Maker == "a")
@@ -318,12 +335,43 @@ and p1.speed = p2.speed
 and p1.ram = p2.ram
 and p1.model > p2.model
 
+--
+(from p1 in PCs 
+from p2 in PCs 
+where p1.Model != p2.Model
+&& p1.Speed == p2.Speed
+&& p1.Ram == p2.Ram
+&& Convert.ToInt32(p1.Model) > Convert.ToInt32(p2.Model)
+select new 
+{
+	Model1 = p1.Model,
+	Model2 = p2.Model,
+	Speed = p1.Speed,
+	Ram = p1.Ram
+}).Distinct()
 
 
 17) !!!
-select type, product.model, speed
-from product inner join laptop on (product.model = laptop.model)
-where speed < all(select speed from pc)
+SELECT DISTINCT p.type, l.model, l.speed
+FROM Product p, Laptop l
+WHERE l.speed < (SELECT MIN (speed) 
+                 FROM PC) 
+AND p.type = 'laptop'
+
+
+--
+(from p in Products 
+from l in Laptops
+let squery = PCs.Select(pc => pc.Speed).Min()
+where l.Speed < squery
+&& p.Type == "Laptop"
+select new
+{
+	Type = p.Type,
+	Model = l.Model,
+	Speed = l.Speed
+}).Distinct()
+
 
  
 18) !!!
@@ -335,8 +383,20 @@ from Printer
 where color = 'y')
 and color = 'y'
 
---
 
+--
+(from prod in Products
+join pr in Printers
+on prod.Model equals pr.Model
+let squery = Printers.Where(printer => printer.Color == 'y')
+		.Select(printer => printer.Price).Min()
+where pr.Price == squery
+&& pr.Color == 'y'
+select new 
+{
+	Maker = prod.Maker,
+	Price = pr.Price
+}).Distinct()
 
 
 19) 
@@ -366,6 +426,18 @@ where type='PC'
 group by maker
 having count(type) > 2
 
+--
+from pr in Products
+where pr.Type == "PC"
+group pr by pr.Maker
+into prs
+where prs.Count() > 2
+select new 
+{
+	Maker = prs.Key,
+	TypeCount = prs.Count()
+}
+
 
 
 21)
@@ -374,11 +446,39 @@ FROM Product, PC
 Where Product.model = PC.model
 GROUP BY maker
 
+--
+from x in 
+(from prod in Products
+from pc in PCs
+where prod.Model == pc.Model
+select new {prod,pc})
+group x by x.prod.Maker
+into xs
+select new 
+{
+	Maker = xs.Key,
+	MaxPrice = xs.Max(x => x.pc.Price)
+}
+
+
+
 22)
 SELECT speed, AVG(price)
 FROM PC
 WHERE speed > 600
 GROUP BY speed
+
+--
+from pc in PCs
+where pc.Speed > 600
+group pc by pc.Speed
+into pcs
+select new 
+{		
+	Speed = pcs.Key,
+	AveragePrice = pcs.Average(x => x.Price)
+}
+
 
 23)
 SELECT Distinct maker
@@ -388,6 +488,20 @@ intersect
 (SELECT Distinct maker
 From (Product inner join laptop on Product.model = laptop.model)
 Where laptop.speed >=750)
+
+--
+
+(from pr in Products
+join pc in PCs
+on pr.Model equals pc.Model
+where pc.Speed >= 750
+select pr.Maker)
+.Intersect(
+from pr in Products
+join l in Laptops
+on pr.Model equals l.Model
+where l.Speed >= 750
+select pr.Maker).Distinct()
 
 
 24)
@@ -413,6 +527,30 @@ select price
 from printer) x)
 group by model
 
+--
+from x in
+	((from pc in PCs
+	select new { Model = pc.Model, Price = pc.Price})
+	.Concat
+	(from l in Laptops
+	select new { Model =  l.Model, Price = l.Price })
+	.Concat
+	(from pr in Printers
+	select new { Model = pr.Model, Price = pr.Price }))
+where x.Price == 
+		(from y in
+		((from pc in PCs
+		select pc.Price).Concat
+		(from l in Laptops
+		select l.Price).Concat
+		(from printer in Printers
+		select printer.Price))
+		select y).Max()
+group x by x.Model
+into X
+select new { Key = X.Key}
+
+
 
 25)
 select maker
@@ -434,6 +572,24 @@ select maker
 from product
 where type = 'printer'
 
+--
+(from prod in Products
+join pc in PCs 
+on prod.Model equals pc.Model
+where pc.Speed == 
+(from pc1 in PCs
+where pc1.Ram == PCs.Min(x => x.Ram)
+select pc1.Speed).Max()
+&& pc.Ram == (from pc2 in PCs
+select pc2.Ram).Min()
+select prod.Maker)
+.Intersect
+(
+	from prod in Products
+	where prod.Type == "printer"
+	select prod.Maker
+)
+
 
 26)
 Select avg(price)
@@ -449,6 +605,21 @@ on laptop .Model = product.Model
 where product.Maker = 'A') x
 
 
+--
+(from x in
+((from pc in PCs
+join prod in Products
+on pc.Model equals prod.Model
+where prod.Maker == "A"
+select pc.Price).Concat
+(from l in Laptops
+join prod in Products
+on l.Model equals prod.Model
+where prod.Maker == "A"
+select l.Price))
+select x).Average()
+
+
 27)
 Select distinct maker, avg(hd)
 from product inner join pc
@@ -459,6 +630,22 @@ from product
 where type ='printer')
 group by maker
 
+--
+from x in (from prod in Products
+join pc in PCs
+on prod.Model equals pc.Model
+select new {prod, pc})
+let squery = (from product in Products
+			where product.Type == "Printer"
+			select product.Maker).Distinct()
+where squery.Contains(x.prod.Maker)
+group x by x.prod.Maker
+into xs
+select new 
+{
+	Maker = xs.Key,
+	AverageHd = xs.Average(x => x.pc.Hd)
+}
 
 
 28)
@@ -484,13 +671,27 @@ and model NOT LIKE '%[0-9]%'
 
 
 
-47)
+47) !!!
 Select Count(*) no, p1.maker, p1.model
 from product p1 join
  product p2 on p1.model <= p2.model
 group by p1.model, p1.maker
 order by p1.model asc, p1.maker desc
 
+--
+from p1 in Products
+from p2 in Products
+where Convert.ToInt32(p1.Model) <= Convert.ToInt32(p2.Model)
+
+group p1 by p1.Model
+into p1s
+orderby p1s.Key ascending
+select new 
+{
+	Maker = p1s.Key,
+	Model = p1s.Select(x => x.Maker),
+	Count = p1s.Count()
+}
 
 
 
