@@ -1,0 +1,467 @@
+1)
+--
+from p in PCs
+where p.Price < 500
+select new {p.Model, p.Speed, p.Hd}
+
+--
+PCs
+.Where(p => (p.Price < 500))
+.Select(p => new
+{
+	Model = p.Model,
+	Speed = p.Speed,
+	Hd = p.Hd
+})
+
+
+
+2) 
+--
+(from p in Products
+where p.Type == "Printer"
+select new {p.Maker}).Distinct()
+
+--
+Products
+.Where(p => p.Type == "Printer")
+.Select(p => new
+{
+	Maker = p.Maker
+}).Distinct()
+
+
+
+
+3)
+--
+from l in Laptops
+where l.Price > 1000
+select new 
+{
+	Model = l.Model,
+	Ram = l.Ram,
+	Screen = l.Screen
+}
+
+--
+Laptops
+.Where(l => l.Price > 1000)
+.Select(l => new
+{
+	Model = l.Model,
+	Ram = l.Ram,
+	Screen = l.Screen
+})
+
+
+4)
+
+--
+
+from p in Printers
+where p.Color == 'y'
+select p
+
+
+
+
+
+
+5)
+
+--
+from pc in PCs
+where new[] {"12x", "24x"}.Contains(pc.Cd) 
+&& pc.Price < 600
+select new
+{
+	Model = pc.Model,
+	Speed = pc.Speed,
+	Hd = pc.Hd
+}
+
+
+
+6)
+--
+(from p in Products
+join l in Laptops on p.Model equals l.Model
+where l.Hd >= 10
+select new 
+{
+	Maker = p.Maker,
+	Speed = l.Speed
+}).Distinct()
+
+
+
+7)
+--
+(from pc in PCs
+join p in Products 
+on pc.Model equals p.Model
+where p.Maker == "b"
+select new 
+{
+	Model = pc.Model,
+	Price = pc.Price
+}).Union
+(from l in Laptops 
+join p in Products 
+on l.Model equals p.Model
+where p.Maker == "b"
+select new
+{
+	Model = l.Model,
+	Price = l.Price
+}).Union
+(from pr in Printers
+join p in Products
+on pr.Model equals p.Model
+where p.Maker == "b"
+select new
+{
+	Model = pr.Model,
+	Price = pr.Price
+})
+
+
+
+
+
+8)
+--
+(from prod in Products
+where prod.Type == "pc"
+select new 
+{
+	Maker = prod.Maker
+}).Except
+(from prod in Products
+where prod.Type == "laptop"
+select new 
+{
+	Maker = prod.Maker
+})
+
+
+
+
+9)
+--
+(from p in Products
+let squery = from pc in PCs
+where pc.Speed >= 450
+select pc.Model
+where p.Type == "pc"
+&& squery.Contains(p.Model)
+select new 
+{
+	Maker = p.Maker
+}).Distinct()
+
+
+
+
+10)
+--
+(from pr in Printers
+let squery = (from printer in Printers
+select printer.Price).Max()
+where pr.Price == squery
+select new
+{
+	Model = pr.Model,
+	Price = pr.Price
+})
+
+
+
+
+
+11)
+--
+PCs.Average(p=>p.Speed)
+
+
+
+12) 
+--
+Laptops.Where(l => l.Price > 1000)
+.Average(l => l.Speed)
+
+
+
+
+13)
+-- Без приведения к Int выдаёт ошибку
+(from pc in PCs
+let squery = from prod in Products
+			where prod.Maker == "A"
+			select prod.Model
+where squery.Contains(pc.Model)
+select (int)pc.Speed).Average()
+
+--
+(from pc in PCs
+let squery = from prod in Products
+			where prod.Maker == "A"
+			select prod.Model
+where squery.Contains(pc.Model)
+select pc.Speed).Average()
+
+--
+PCs.Where(model => Products.Where(prod => prod.Maker == "a")
+.Select(prod => prod.Model)
+.Contains(model.Model))
+.Select(pc => (int)pc.Speed)
+.Average()
+
+
+
+15) 
+--
+from pc in PCs
+group pc by pc.Hd into pcs
+where pcs.Count() > 1
+select pcs.Key
+
+
+
+
+16)
+--
+(from p1 in PCs 
+from p2 in PCs 
+where p1.Model != p2.Model
+&& p1.Speed == p2.Speed
+&& p1.Ram == p2.Ram
+&& Convert.ToInt32(p1.Model) > Convert.ToInt32(p2.Model)
+select new 
+{
+	Model1 = p1.Model,
+	Model2 = p2.Model,
+	Speed = p1.Speed,
+	Ram = p1.Ram
+}).Distinct()
+
+
+
+
+17)
+--
+(from p in Products 
+from l in Laptops
+let squery = PCs.Select(pc => pc.Speed).Min()
+where l.Speed < squery
+&& p.Type == "Laptop"
+select new
+{
+	Type = p.Type,
+	Model = l.Model,
+	Speed = l.Speed
+}).Distinct()
+
+
+
+
+18) 
+--
+(from prod in Products
+join pr in Printers
+on prod.Model equals pr.Model
+let squery = Printers.Where(printer => printer.Color == 'y')
+		.Select(printer => printer.Price).Min()
+where pr.Price == squery
+&& pr.Color == 'y'
+select new 
+{
+	Maker = prod.Maker,
+	Price = pr.Price
+}).Distinct()
+
+
+
+
+
+
+
+19) 
+--
+from pr in Products 
+join l in Laptops
+on pr.Model equals l.Model
+group pr by pr.Maker 
+into prs
+select new
+{
+	Maker = prs.Key,
+	ScreenAvg = Laptops.Select(lap =>(int)lap.Screen).Average()
+}
+
+
+
+
+
+20)
+--
+from pr in Products
+where pr.Type == "PC"
+group pr by pr.Maker
+into prs
+where prs.Count() > 2
+select new 
+{
+	Maker = prs.Key,
+	TypeCount = prs.Count()
+}
+
+
+
+
+
+21)
+--
+from x in 
+(from prod in Products
+from pc in PCs
+where prod.Model == pc.Model
+select new {prod,pc})
+group x by x.prod.Maker
+into xs
+select new 
+{
+	Maker = xs.Key,
+	MaxPrice = xs.Max(x => x.pc.Price)
+}
+
+
+
+
+
+22)
+--
+from pc in PCs
+where pc.Speed > 600
+group pc by pc.Speed
+into pcs
+select new 
+{		
+	Speed = pcs.Key,
+	AveragePrice = pcs.Average(x => x.Price)
+}
+
+
+
+23)
+--
+(from pr in Products
+join pc in PCs
+on pr.Model equals pc.Model
+where pc.Speed >= 750
+select pr.Maker)
+.Intersect(
+from pr in Products
+join l in Laptops
+on pr.Model equals l.Model
+where l.Speed >= 750
+select pr.Maker).Distinct()
+
+
+
+
+
+
+24)
+--
+from x in
+	((from pc in PCs
+	select new { Model = pc.Model, Price = pc.Price})
+	.Concat
+	(from l in Laptops
+	select new { Model =  l.Model, Price = l.Price })
+	.Concat
+	(from pr in Printers
+	select new { Model = pr.Model, Price = pr.Price }))
+where x.Price == 
+		(from y in
+		((from pc in PCs
+		select pc.Price).Concat
+		(from l in Laptops
+		select l.Price).Concat
+		(from printer in Printers
+		select printer.Price))
+		select y).Max()
+group x by x.Model
+into X
+select new { Key = X.Key}
+
+
+
+
+
+
+25)
+--
+(from prod in Products
+join pc in PCs 
+on prod.Model equals pc.Model
+where pc.Speed == 
+(from pc1 in PCs
+where pc1.Ram == PCs.Min(x => x.Ram)
+select pc1.Speed).Max()
+&& pc.Ram == (from pc2 in PCs
+select pc2.Ram).Min()
+select prod.Maker)
+.Intersect
+(
+	from prod in Products
+	where prod.Type == "printer"
+	select prod.Maker
+)
+
+
+
+
+
+26)
+--
+(from x in
+((from pc in PCs
+join prod in Products
+on pc.Model equals prod.Model
+where prod.Maker == "A"
+select pc.Price).Concat
+(from l in Laptops
+join prod in Products
+on l.Model equals prod.Model
+where prod.Maker == "A"
+select l.Price))
+select x).Average()
+
+
+
+
+
+27)
+--
+from x in (from prod in Products
+join pc in PCs
+on prod.Model equals pc.Model
+select new {prod, pc})
+let squery = (from product in Products
+			where product.Type == "Printer"
+			select product.Maker).Distinct()
+where squery.Contains(x.prod.Maker)
+group x by x.prod.Maker
+into xs
+select new 
+{
+	Maker = xs.Key,
+	AverageHd = xs.Average(x => x.pc.Hd)
+}
+
+
+
+
