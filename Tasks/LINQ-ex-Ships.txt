@@ -174,3 +174,21 @@ join ship in Ships
 on outcome.Ship equals ship.Name
 where ship.Class == "Kongo"
 select outcome.Battle).Distinct()
+
+53) 
+select CAST(ROUND(avg(CAST((numGuns*1.0)  AS NUMERIC(10,1))),2) AS NUMERIC(10,2))
+from Classes
+where type='bb'
+
+
+55) 
+select class, min(launched)
+from Ships
+where class=name
+group by class
+union 
+select Ships.class, min(launched)
+from Ships, Classes
+where ships.class = classes.class
+group by Ships.class
+
